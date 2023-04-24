@@ -30,9 +30,10 @@ class BackendServerCommunicator(ICommunicator):
     def send_success_response(self, client_sock: socket.socket, response_str: str) -> None:
         client_sock.sendall(response_str.encode())
         # Check if socket is still connected before shutting down and closing
-        if client_sock.fileno() != -1:
-            client_sock.shutdown(socket.SHUT_RDWR)
-            client_sock.close()
+        if client_sock.getsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE) == 0:
+            return
+        client_sock.shutdown(socket.SHUT_RDWR)
+        client_sock.close()
 
     def send_error_response(self, client_sock: socket.socket, reason: str, message: str) -> None:
         """
